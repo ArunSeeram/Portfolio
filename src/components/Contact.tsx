@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Mail, Github, Linkedin, Send } from 'lucide-react';
+import emailjs from 'emailjs-com';
 
 interface ContactProps {
   darkMode: boolean;
@@ -12,18 +13,48 @@ export default function Contact({ darkMode }: ContactProps) {
     message: '',
   });
 
+  const [popup, setPopup] = useState({
+    show: false,
+    message: '',
+    type: 'success',
+  });
+  
+  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+
+    const serviceID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    emailjs
+      .send(serviceID, templateID, formData, publicKey)
+      .then(() => {
+        setPopup({
+          show: true,
+          message: 'Message Sent Successfully!',
+          type: 'success',
+        });
+
+        setFormData({ name: '', email: '', message: '' });
+
+        setTimeout(() => setPopup({ ...popup, show: false }), 3000);
+      })
+      .catch(() => {
+        setPopup({
+          show: true,
+          message: 'Failed to send message. Try again!',
+          type: 'error',
+        });
+        setTimeout(() => setPopup({ ...popup, show: false }), 3000);
+      });
   };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   return (
@@ -33,13 +64,19 @@ export default function Contact({ darkMode }: ContactProps) {
         darkMode ? 'bg-gray-800' : 'bg-gray-50'
       }`}
     >
+      {/* Animated Background Dots */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className={`absolute -top-20 -left-20 w-80 h-80 rounded-full blur-3xl opacity-10 animate-float ${
-          darkMode ? 'bg-blue-500' : 'bg-blue-300'
-        }`}></div>
-        <div className={`absolute -bottom-20 -right-20 w-80 h-80 rounded-full blur-3xl opacity-10 animate-float ${
-          darkMode ? 'bg-purple-500' : 'bg-purple-300'
-        }`} style={{ animationDelay: '2s' }}></div>
+        <div
+          className={`absolute -top-20 -left-20 w-80 h-80 rounded-full blur-3xl opacity-10 animate-float ${
+            darkMode ? 'bg-blue-500' : 'bg-blue-300'
+          }`}
+        ></div>
+        <div
+          className={`absolute -bottom-20 -right-20 w-80 h-80 rounded-full blur-3xl opacity-10 animate-float ${
+            darkMode ? 'bg-purple-500' : 'bg-purple-300'
+          }`}
+          style={{ animationDelay: '2s' }}
+        ></div>
       </div>
 
       <div className="max-w-4xl mx-auto relative z-10">
@@ -62,63 +99,61 @@ export default function Contact({ darkMode }: ContactProps) {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
+          {/* FORM */}
           <div>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Your Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className={`w-full px-6 py-4 rounded-lg transition-all focus:ring-2 focus:ring-blue-500 outline-none ${
-                    darkMode
-                      ? 'bg-gray-900 text-white border border-gray-700'
-                      : 'bg-white text-gray-900 border border-gray-300'
-                  }`}
-                />
-              </div>
-              <div>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Your Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className={`w-full px-6 py-4 rounded-lg transition-all focus:ring-2 focus:ring-blue-500 outline-none ${
-                    darkMode
-                      ? 'bg-gray-900 text-white border border-gray-700'
-                      : 'bg-white text-gray-900 border border-gray-300'
-                  }`}
-                />
-              </div>
-              <div>
-                <textarea
-                  name="message"
-                  placeholder="Your Message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  rows={5}
-                  className={`w-full px-6 py-4 rounded-lg transition-all focus:ring-2 focus:ring-blue-500 outline-none resize-none ${
-                    darkMode
-                      ? 'bg-gray-900 text-white border border-gray-700'
-                      : 'bg-white text-gray-900 border border-gray-300'
-                  }`}
-                ></textarea>
-              </div>
+              <input
+                type="text"
+                name="name"
+                placeholder="Your Name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className={`w-full px-6 py-4 rounded-lg transition-all focus:ring-2 focus:ring-blue-500 outline-none ${
+                  darkMode
+                    ? 'bg-gray-900 text-white border border-gray-700'
+                    : 'bg-white text-gray-900 border border-gray-300'
+                }`}
+              />
+
+              <input
+                type="email"
+                name="email"
+                placeholder="Your Email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className={`w-full px-6 py-4 rounded-lg transition-all focus:ring-2 focus:ring-blue-500 outline-none ${
+                  darkMode
+                    ? 'bg-gray-900 text-white border border-gray-700'
+                    : 'bg-white text-gray-900 border border-gray-300'
+                }`}
+              />
+
+              <textarea
+                name="message"
+                placeholder="Your Message"
+                value={formData.message}
+                onChange={handleChange}
+                required
+                rows={5}
+                className={`w-full px-6 py-4 rounded-lg transition-all focus:ring-2 focus:ring-blue-500 outline-none resize-none ${
+                  darkMode
+                    ? 'bg-gray-900 text-white border border-gray-700'
+                    : 'bg-white text-gray-900 border border-gray-300'
+                }`}
+              ></textarea>
+
               <button
                 type="submit"
                 className="w-full py-4 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-all hover:scale-105 hover:shadow-xl flex items-center justify-center gap-2"
               >
-                Send Message
-                <Send size={20} />
+                Send Message <Send size={20} />
               </button>
             </form>
           </div>
 
+          {/* CONTACT CARDS */}
           <div className="flex flex-col justify-center space-y-6">
             <div
               className={`p-6 rounded-2xl ${
@@ -134,10 +169,10 @@ export default function Contact({ darkMode }: ContactProps) {
                 Email
               </h3>
               <a
-                href="mailto:arunseeram111@example.com"
+                href="mailto:arunseeram111@gmail.com"
                 className="text-blue-500 hover:underline"
               >
-                arunseeram111@example.com
+                arunseeram111@gmail.com
               </a>
             </div>
 
@@ -155,7 +190,7 @@ export default function Contact({ darkMode }: ContactProps) {
                 GitHub
               </h3>
               <a
-                href="hhttps://github.com/ArunSeeram"
+                href="https://github.com/ArunSeeram"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:underline"
@@ -189,6 +224,17 @@ export default function Contact({ darkMode }: ContactProps) {
           </div>
         </div>
       </div>
+
+      {/* POPUP TOAST */}
+      {popup.show && (
+        <div
+          className={`fixed bottom-5 right-5 px-5 py-3 rounded-lg shadow-xl text-white text-sm animate-slideUp ${
+            popup.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+          }`}
+        >
+          {popup.message}
+        </div>
+      )}
     </section>
   );
 }
