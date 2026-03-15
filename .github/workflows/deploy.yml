@@ -11,11 +11,15 @@ jobs:
 
     steps:
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            echo "Connected to EC2"
             cd /home/ubuntu/Portfolio
+            pwd
+            ls
+            chmod +x deploy.sh
             ./deploy.sh
