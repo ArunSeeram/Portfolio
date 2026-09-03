@@ -1,108 +1,188 @@
-import { Code2, Layers, Zap, Users } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 
-interface AboutProps {
-  darkMode: boolean;
-}
+gsap.registerPlugin(ScrollTrigger);
 
-export default function About({ darkMode }: AboutProps) {
-  const highlights = [
-    { icon: Code2, text: 'Clean, maintainable code' },
-    { icon: Layers, text: 'Component architecture' },
-    { icon: Zap, text: 'Performance optimization' },
-    { icon: Users, text: 'User-focused design' },
-  ];
+const highlights = [
+  { label: 'Clean Code',      desc: 'Maintainable, readable architecture' },
+  { label: 'Component Design', desc: 'Scalable, reusable UI systems' },
+  { label: 'Performance',     desc: 'Fast loads, smooth interactions' },
+  { label: 'Full Stack',      desc: 'React · Node.js · MySQL end-to-end' },
+];
+
+export default function About() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const textRef    = useRef<HTMLDivElement>(null);
+  const cardsRef   = useRef<HTMLDivElement>(null);
+  const reduced    = useReducedMotion();
+
+  useEffect(() => {
+    if (reduced || !sectionRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // Text reveal on scroll
+      const words = textRef.current?.querySelectorAll('.word-inner');
+      if (words && words.length > 0) {
+        gsap.fromTo(Array.from(words),
+          { y: '110%' },
+          {
+            y: '0%',
+            stagger: 0.04,
+            duration: 0.85,
+            ease: 'power4.out',
+            scrollTrigger: {
+              trigger: textRef.current,
+              start: 'top 75%',
+              toggleActions: 'play none none none',
+            },
+          }
+        );
+      }
+
+      // Cards stagger
+      const cards = cardsRef.current?.querySelectorAll('.about-card');
+      if (cards) {
+        gsap.fromTo(Array.from(cards),
+          { opacity: 0, y: 32 },
+          {
+            opacity: 1,
+            y: 0,
+            stagger: 0.1,
+            duration: 0.7,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: cardsRef.current,
+              start: 'top 80%',
+              toggleActions: 'play none none none',
+            },
+          }
+        );
+      }
+
+      // Section label
+      gsap.fromTo('.about-label',
+        { opacity: 0, x: -20 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.6,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top 80%',
+            toggleActions: 'play none none none',
+          },
+        }
+      );
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [reduced]);
+
+  const statement = 'I TURN IDEAS INTO FAST, INTERACTIVE, AND POLISHED DIGITAL EXPERIENCES.'.split(' ');
 
   return (
     <section
       id="about"
-      className={`py-20 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}
+      ref={sectionRef}
+      className="relative py-32 px-6"
+      style={{ background: 'var(--bg-base)' }}
+      aria-labelledby="about-heading"
     >
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2
-            className={`text-4xl md:text-5xl font-bold mb-4 ${
-              darkMode ? 'text-white' : 'text-gray-900'
-            }`}
-          >
-            About <span className="text-blue-500">Me</span>
-          </h2>
-          <div className="w-20 h-1 bg-blue-500 mx-auto rounded-full"></div>
+      {/* Thin top border */}
+      <div className="divider mb-20 max-w-7xl mx-auto" />
+
+      <div className="max-w-7xl mx-auto">
+        {/* Label */}
+        <div className="about-label flex items-center gap-4 mb-16 opacity-0">
+          <span className="section-number">02</span>
+          <span className="divider" style={{ width: '40px', display: 'inline-block' }} />
+          <span className="section-label">About</span>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div
-            className={`rounded-2xl p-8 ${
-              darkMode
-                ? 'bg-gradient-to-br from-gray-800 to-gray-900 shadow-2xl'
-                : 'bg-gradient-to-br from-gray-50 to-white shadow-xl'
-            }`}
+        {/* Big editorial statement */}
+        <div ref={textRef} className="mb-20">
+          <h2
+            id="about-heading"
+            className="font-display font-bold leading-tight flex flex-wrap gap-x-[0.2em] gap-y-1"
+            style={{
+              fontSize: 'clamp(1.8rem, 4.5vw, 4.2rem)',
+              letterSpacing: '-0.01em',
+              color: 'var(--text-primary)',
+            }}
           >
-            <div className="aspect-square rounded-xl overflow-hidden mb-6 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <Code2 size={120} className="text-white opacity-80" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {highlights.map((item, index) => (
-                <div
-                  key={index}
-                  className={`p-4 rounded-lg ${
-                    darkMode ? 'bg-gray-800/50' : 'bg-white/50'
-                  }`}
+            {statement.map((word, i) => (
+              <span key={i} className="word-wrap">
+                <span
+                  className="word-inner"
+                  style={{ color: ['FAST,', 'INTERACTIVE,', 'POLISHED'].includes(word) ? 'var(--accent)' : 'var(--text-primary)' }}
                 >
-                  <item.icon size={24} className="text-blue-500 mb-2" />
-                  <p
-                    className={`text-sm ${
-                      darkMode ? 'text-gray-300' : 'text-gray-700'
-                    }`}
-                  >
-                    {item.text}
-                  </p>
-                </div>
-              ))}
-            </div>
+                  {word}
+                </span>
+              </span>
+            ))}
+          </h2>
+        </div>
+
+        {/* Two columns */}
+        <div className="grid md:grid-cols-2 gap-16 items-start">
+          {/* Bio */}
+          <div>
+            <p className="text-base leading-relaxed mb-6" style={{ color: 'var(--text-secondary)' }}>
+              I'm a full-stack web developer with hands-on experience across{' '}
+              <span style={{ color: 'var(--accent)' }}>React</span>,{' '}
+              <span style={{ color: 'var(--accent)' }}>Node.js / Express</span>,{' '}
+              <span style={{ color: 'var(--accent)' }}>TypeScript</span>, and{' '}
+              <span style={{ color: 'var(--accent)' }}>MySQL</span>.
+            </p>
+            <p className="text-base leading-relaxed mb-6" style={{ color: 'var(--text-secondary)' }}>
+              As a Web Developer Intern at{' '}
+              <span style={{ color: 'var(--accent)' }}>Suraise Solutions</span>{' '}
+              (8 months) I worked across the complete product lifecycle: system design,
+              Figma UI/UX, frontend development, API integration, QA testing, and
+              production deployment. Before that, I built REST APIs and handled
+              backend deployments at{' '}
+              <span style={{ color: 'var(--accent)' }}>Aniweb Technologies</span>.
+            </p>
+            <p className="text-base leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+              I've delivered 8+ production-grade projects — from enterprise POS platforms
+              and real estate marketplaces to e-commerce storefronts and healthcare portals —
+              always prioritising clean architecture, smooth UX, and real-world reliability.
+            </p>
           </div>
 
-          <div>
-            <p
-              className={`text-lg leading-relaxed mb-6 ${
-                darkMode ? 'text-gray-300' : 'text-gray-600'
-              }`}
-            >
-              I'm a passionate developer with strong expertise in{' '}
-              <span className="text-blue-500 font-semibold">React</span>,{' '}
-              <span className="text-blue-500 font-semibold">JavaScript</span>, and{' '}
-              <span className="text-blue-500 font-semibold">Angular</span>.
-            </p>
-            <p
-              className={`text-lg leading-relaxed mb-6 ${
-                darkMode ? 'text-gray-300' : 'text-gray-600'
-              }`}
-            >
-              With hands-on experience in the{' '}
-              <span className="text-blue-500 font-semibold">MERN stack</span>{' '}
-              (MongoDB, Express, Node.js), I specialize in building full-stack
-              applications that are both powerful and elegant.
-            </p>
-            <p
-              className={`text-lg leading-relaxed mb-6 ${
-                darkMode ? 'text-gray-300' : 'text-gray-600'
-              }`}
-            >
-              I have a deep passion for creating{' '}
-              <span className="text-blue-500 font-semibold">clean user interfaces</span>,
-              implementing robust{' '}
-              <span className="text-blue-500 font-semibold">component architectures</span>,
-              and optimizing for{' '}
-              <span className="text-blue-500 font-semibold">performance</span>.
-            </p>
-            <p
-              className={`text-lg leading-relaxed ${
-                darkMode ? 'text-gray-300' : 'text-gray-600'
-              }`}
-            >
-              My goal is to craft{' '}
-              <span className="text-blue-500 font-semibold">production-ready applications</span>{' '}
-              that deliver exceptional user experiences and solve real-world problems.
-            </p>
+          {/* Highlight cards */}
+          <div ref={cardsRef} className="grid grid-cols-2 gap-4">
+            {highlights.map((h, i) => (
+              <div
+                key={i}
+                className="about-card glass p-5 opacity-0"
+                style={{
+                  borderRadius: '4px',
+                  transition: 'border-color 0.25s ease',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(200,169,110,0.3)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
+                }}
+              >
+                <div
+                  className="w-6 h-px mb-4"
+                  style={{ background: 'var(--accent)' }}
+                />
+                <p
+                  className="font-display font-semibold text-sm mb-1"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {h.label}
+                </p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{h.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

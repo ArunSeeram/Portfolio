@@ -1,240 +1,260 @@
-import { useState } from 'react';
-import { Mail, Github, Linkedin, Send } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import emailjs from 'emailjs-com';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 
-interface ContactProps {
-  darkMode: boolean;
-}
+gsap.registerPlugin(ScrollTrigger);
 
-export default function Contact({ darkMode }: ContactProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: '',
-  });
+const socials = [
+  {
+    label: 'Email',
+    href: 'mailto:arunseeram111@gmail.com',
+    display: 'arunseeram111@gmail.com',
+  },
+  {
+    label: 'GitHub',
+    href: 'https://github.com/ArunSeeram',
+    display: 'github.com/ArunSeeram',
+  },
+  {
+    label: 'LinkedIn',
+    href: 'https://www.linkedin.com/in/arun-kumar-7432b2250',
+    display: 'linkedin.com/in/arun-kumar',
+  },
+];
 
-  const [popup, setPopup] = useState({
-    show: false,
-    message: '',
-    type: 'success',
-  });
-  
-  
+export default function Contact() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const reduced    = useReducedMotion();
+
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [status, setStatus]     = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+
+  useEffect(() => {
+    if (reduced || !sectionRef.current) return;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo('.contact-heading .word-inner',
+        { y: '110%' },
+        {
+          y: '0%',
+          stagger: 0.06,
+          duration: 0.9,
+          ease: 'power4.out',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top 70%',
+            toggleActions: 'play none none none',
+          },
+        }
+      );
+
+      gsap.fromTo(['.contact-form', '.contact-socials'],
+        { opacity: 0, y: 40 },
+        {
+          opacity: 1,
+          y: 0,
+          stagger: 0.15,
+          duration: 0.8,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '.contact-form',
+            start: 'top 80%',
+            toggleActions: 'play none none none',
+          },
+        }
+      );
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [reduced]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setStatus('sending');
 
-    const serviceID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const serviceID  = import.meta.env.VITE_EMAILJS_SERVICE_ID;
     const templateID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+    const publicKey  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
-    emailjs
-      .send(serviceID, templateID, formData, publicKey)
+    emailjs.send(serviceID, templateID, formData, publicKey)
       .then(() => {
-        setPopup({
-          show: true,
-          message: 'Message Sent Successfully!',
-          type: 'success',
-        });
-
+        setStatus('sent');
         setFormData({ name: '', email: '', message: '' });
-
-        setTimeout(() => setPopup({ ...popup, show: false }), 3000);
+        setTimeout(() => setStatus('idle'), 4000);
       })
       .catch(() => {
-        setPopup({
-          show: true,
-          message: 'Failed to send message. Try again!',
-          type: 'error',
-        });
-        setTimeout(() => setPopup({ ...popup, show: false }), 3000);
+        setStatus('error');
+        setTimeout(() => setStatus('idle'), 4000);
       });
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '1rem 1.25rem',
+    background: 'var(--bg-surface)',
+    border: '1px solid var(--border)',
+    color: 'var(--text-primary)',
+    fontFamily: 'var(--font-body)',
+    fontSize: '0.9rem',
+    outline: 'none',
+    borderRadius: '2px',
+    transition: 'border-color 0.25s ease',
   };
+
+  const headline = 'LET\'S BUILD SOMETHING.'.split(' ');
 
   return (
     <section
       id="contact"
-      className={`py-20 px-6 relative overflow-hidden ${
-        darkMode ? 'bg-gray-800' : 'bg-gray-50'
-      }`}
+      ref={sectionRef}
+      className="relative py-32 px-6 border-t"
+      style={{ background: 'var(--bg-base)', borderColor: 'var(--border)' }}
+      aria-labelledby="contact-heading"
     >
-      {/* Animated Background Dots */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className={`absolute -top-20 -left-20 w-80 h-80 rounded-full blur-3xl opacity-10 animate-float ${
-            darkMode ? 'bg-blue-500' : 'bg-blue-300'
-          }`}
-        ></div>
-        <div
-          className={`absolute -bottom-20 -right-20 w-80 h-80 rounded-full blur-3xl opacity-10 animate-float ${
-            darkMode ? 'bg-purple-500' : 'bg-purple-300'
-          }`}
-          style={{ animationDelay: '2s' }}
-        ></div>
-      </div>
-
-      <div className="max-w-4xl mx-auto relative z-10">
-        <div className="text-center mb-16">
-          <h2
-            className={`text-4xl md:text-5xl font-bold mb-4 ${
-              darkMode ? 'text-white' : 'text-gray-900'
-            }`}
-          >
-            Get In <span className="text-blue-500">Touch</span>
-          </h2>
-          <div className="w-20 h-1 bg-blue-500 mx-auto rounded-full"></div>
-          <p
-            className={`mt-6 text-lg ${
-              darkMode ? 'text-gray-300' : 'text-gray-600'
-            }`}
-          >
-            Have a project in mind? Let's work together!
-          </p>
+      <div className="max-w-7xl mx-auto">
+        {/* Label */}
+        <div className="flex items-center gap-4 mb-12">
+          <span className="section-number">08</span>
+          <span className="divider" style={{ width: '40px', display: 'inline-block' }} />
+          <span className="section-label">Contact</span>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* FORM */}
-          <div>
-            <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Big heading */}
+        <h2
+          id="contact-heading"
+          className="contact-heading font-display font-bold leading-tight mb-20 flex flex-wrap gap-x-[0.2em]"
+          style={{
+            fontSize: 'clamp(2.5rem, 7vw, 7.5rem)',
+            letterSpacing: '-0.03em',
+            color: 'var(--text-primary)',
+          }}
+        >
+          {headline.map((word, i) => (
+            <span key={i} className="word-wrap">
+              <span
+                className="word-inner"
+                style={{ color: word === 'SOMETHING.' ? 'var(--accent)' : 'var(--text-primary)' }}
+              >
+                {word}
+              </span>
+            </span>
+          ))}
+        </h2>
+
+        <div className="grid md:grid-cols-2 gap-16">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="contact-form opacity-0 space-y-5" noValidate>
+            <div>
+              <label className="section-label block mb-2" htmlFor="name">Your Name</label>
               <input
+                id="name"
                 type="text"
                 name="name"
-                placeholder="Your Name"
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className={`w-full px-6 py-4 rounded-lg transition-all focus:ring-2 focus:ring-blue-500 outline-none ${
-                  darkMode
-                    ? 'bg-gray-900 text-white border border-gray-700'
-                    : 'bg-white text-gray-900 border border-gray-300'
-                }`}
+                style={inputStyle}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
               />
-
+            </div>
+            <div>
+              <label className="section-label block mb-2" htmlFor="email">Your Email</label>
               <input
+                id="email"
                 type="email"
                 name="email"
-                placeholder="Your Email"
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className={`w-full px-6 py-4 rounded-lg transition-all focus:ring-2 focus:ring-blue-500 outline-none ${
-                  darkMode
-                    ? 'bg-gray-900 text-white border border-gray-700'
-                    : 'bg-white text-gray-900 border border-gray-300'
-                }`}
+                style={inputStyle}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
               />
-
+            </div>
+            <div>
+              <label className="section-label block mb-2" htmlFor="message">Message</label>
               <textarea
+                id="message"
                 name="message"
-                placeholder="Your Message"
+                rows={5}
                 value={formData.message}
                 onChange={handleChange}
                 required
-                rows={5}
-                className={`w-full px-6 py-4 rounded-lg transition-all focus:ring-2 focus:ring-blue-500 outline-none resize-none ${
-                  darkMode
-                    ? 'bg-gray-900 text-white border border-gray-700'
-                    : 'bg-white text-gray-900 border border-gray-300'
-                }`}
-              ></textarea>
-
-              <button
-                type="submit"
-                className="w-full py-4 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-all hover:scale-105 hover:shadow-xl flex items-center justify-center gap-2"
-              >
-                Send Message <Send size={20} />
-              </button>
-            </form>
-          </div>
-
-          {/* CONTACT CARDS */}
-          <div className="flex flex-col justify-center space-y-6">
-            <div
-              className={`p-6 rounded-2xl ${
-                darkMode ? 'bg-gray-900' : 'bg-white'
-              }`}
-            >
-              <Mail size={32} className="text-blue-500 mb-4" />
-              <h3
-                className={`text-xl font-bold mb-2 ${
-                  darkMode ? 'text-white' : 'text-gray-900'
-                }`}
-              >
-                Email
-              </h3>
-              <a
-                href="mailto:arunseeram111@gmail.com"
-                className="text-blue-500 hover:underline"
-              >
-                arunseeram111@gmail.com
-              </a>
+                style={{ ...inputStyle, resize: 'none' }}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+              />
             </div>
 
-            <div
-              className={`p-6 rounded-2xl ${
-                darkMode ? 'bg-gray-900' : 'bg-white'
-              }`}
+            <button
+              type="submit"
+              disabled={status === 'sending'}
+              className="magnetic w-full py-4 font-mono text-sm tracking-widest uppercase border-2 transition-all duration-300"
+              style={{
+                borderColor: 'var(--accent)',
+                color: status === 'sent' ? '#050505' : 'var(--text-primary)',
+                background: status === 'sent' ? 'var(--accent)' : 'transparent',
+                borderRadius: '2px',
+                opacity: status === 'sending' ? 0.7 : 1,
+                cursor: status === 'sending' ? 'wait' : 'pointer',
+              }}
+              onMouseEnter={e => {
+                if (status !== 'sending') {
+                  (e.currentTarget as HTMLElement).style.background = 'var(--accent)';
+                  (e.currentTarget as HTMLElement).style.color = '#050505';
+                }
+              }}
+              onMouseLeave={e => {
+                if (status !== 'sent') {
+                  (e.currentTarget as HTMLElement).style.background = 'transparent';
+                  (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)';
+                }
+              }}
             >
-              <Github size={32} className="text-blue-500 mb-4" />
-              <h3
-                className={`text-xl font-bold mb-2 ${
-                  darkMode ? 'text-white' : 'text-gray-900'
-                }`}
-              >
-                GitHub
-              </h3>
-              <a
-                href="https://github.com/ArunSeeram"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline"
-              >
-                github.com/ArunSeeram
-              </a>
-            </div>
+              {status === 'idle'    && 'Send Message →'}
+              {status === 'sending' && 'Sending...'}
+              {status === 'sent'    && '✓ Message Sent!'}
+              {status === 'error'   && 'Failed — Try Again'}
+            </button>
+          </form>
 
-            <div
-              className={`p-6 rounded-2xl ${
-                darkMode ? 'bg-gray-900' : 'bg-white'
-              }`}
-            >
-              <Linkedin size={32} className="text-blue-500 mb-4" />
-              <h3
-                className={`text-xl font-bold mb-2 ${
-                  darkMode ? 'text-white' : 'text-gray-900'
-                }`}
-              >
-                LinkedIn
-              </h3>
-              <a
-                href="https://www.linkedin.com/in/arun-kumar-7432b2250"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline"
-              >
-                linkedin.com/in/arun-kumar
-              </a>
+          {/* Socials */}
+          <div className="contact-socials opacity-0 flex flex-col justify-between">
+            <div>
+              <p className="text-base leading-relaxed mb-10" style={{ color: 'var(--text-secondary)' }}>
+                Open to full-time roles, freelance projects, and collaborations.
+                Drop a message or reach out directly.
+              </p>
+
+              <div className="space-y-6">
+                {socials.map(s => (
+                  <div key={s.label} className="border-b pb-6" style={{ borderColor: 'var(--border)' }}>
+                    <p className="section-label mb-1">{s.label}</p>
+                    <a
+                      href={s.href}
+                      target={s.href.startsWith('mailto') ? undefined : '_blank'}
+                      rel="noopener noreferrer"
+                      className="font-display font-semibold text-lg transition-colors duration-200"
+                      style={{ color: 'var(--text-primary)' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
+                      onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+                    >
+                      {s.display} ↗
+                    </a>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* POPUP TOAST */}
-      {popup.show && (
-        <div
-          className={`fixed bottom-5 right-5 px-5 py-3 rounded-lg shadow-xl text-white text-sm animate-slideUp ${
-            popup.type === 'success' ? 'bg-green-600' : 'bg-red-600'
-          }`}
-        >
-          {popup.message}
-        </div>
-      )}
     </section>
   );
 }

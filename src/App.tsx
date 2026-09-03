@@ -1,46 +1,68 @@
 import { useState, useEffect } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useLenis } from './hooks/useLenis';
+import Preloader from './components/Preloader';
+import CustomCursor from './components/CustomCursor';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
 import Skills from './components/Skills';
-import Projects from './components/Projects';
+import TechStack from './components/TechStack';
+import HorizontalProjects from './components/HorizontalProjects';
+import Experience from './components/Experience';
+import ResumeCTA from './components/ResumeCTA';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 
-function App() {
-  const [darkMode, setDarkMode] = useState(true);
+gsap.registerPlugin(ScrollTrigger);
 
+function ScrollProgress() {
   useEffect(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    if (savedMode) {
-      setDarkMode(JSON.parse(savedMode));
-    }
+    const bar = document.getElementById('scroll-progress');
+    if (!bar) return;
+
+    const update = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = max > 0 ? window.scrollY / max : 0;
+      gsap.set(bar, { scaleX: progress });
+    };
+
+    window.addEventListener('scroll', update, { passive: true });
+    return () => window.removeEventListener('scroll', update);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
-  return (
-    <div className="min-h-screen">
-      <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-      <Hero darkMode={darkMode} />
-      <About darkMode={darkMode} />
-      <Skills darkMode={darkMode} />
-      <Projects darkMode={darkMode} />
-      <Contact darkMode={darkMode} />
-      <Footer darkMode={darkMode} />
-    </div>
-  );
+  return <div id="scroll-progress" aria-hidden="true" />;
 }
 
-export default App;
+export default function App() {
+  const [loading, setLoading] = useState(true);
+
+  // Initialize Lenis smooth scroll
+  useLenis();
+
+  // Force dark theme class on mount
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+  }, []);
+
+  return (
+    <>
+      {loading && <Preloader onComplete={() => setLoading(false)} />}
+      <ScrollProgress />
+      <CustomCursor />
+      <Navbar isLoaded={!loading} />
+      <main>
+        <Hero isLoaded={!loading} />
+        <About />
+        <Skills />
+        <TechStack />
+        <HorizontalProjects />
+        <Experience />
+        <ResumeCTA />
+        <Contact />
+      </main>
+      <Footer />
+    </>
+  );
+}
