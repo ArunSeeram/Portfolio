@@ -147,7 +147,7 @@ export default function About() {
               <span style={{ color: 'var(--accent)' }}>Aniweb Technologies</span>.
             </p>
             <p className="text-base leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-              I've delivered 8+ production-grade projects — from enterprise POS platforms
+              I've delivered 10+ production-grade projects — from enterprise POS platforms
               and real estate marketplaces to e-commerce storefronts and healthcare portals —
               always prioritising clean architecture, smooth UX, and real-world reliability.
             </p>
